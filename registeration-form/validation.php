@@ -18,7 +18,6 @@ function validate_data($data, $files)
     $minLen = 3;     // minimum name length
     $errors = []; // array to store errors
     $maxSize = 2 * 1024 * 1024; // 2 MB
-    $mime = mime_content_type($files["image"]["tmp_name"]);
     $allowedTypes = ["image/png", "image/jpeg"];
     $fields= ["first_name", "last_name", "email", "password"];
 
@@ -40,18 +39,26 @@ function validate_data($data, $files)
     $errors[] = validate_min_length($data["password"], $fields[3], $minPassLen);
 
     // Image validation
-    if (!file_exists($files["image"]["tmp_name"])){
-        $errors[] = "File does not exist";
-    }
-    if(filesize($files["image"]["tmp_name"]) === 0){
-        $errors[] = "File is empty";
-    }
-    // checks the content of the file regardless of the extension and validates according to it
-    if(!in_array($mime, $allowedTypes)) {
-        $errors[] = "file isn't an image";
-    }
-    if ($files["image"]["size"] > $maxSize) {
+
+
+    foreach ($files["images"]["name"] as $key => $name) {
+
+        $tmpPath = $files["images"]["name"][$key];
+        $mime = mime_content_type($tmpPath);
+
+        if (!file_exists($files["image"]["tmp_name"][$key])) {
+            $errors[] = "File does not exist";
+        }
+        if (filesize($files["image"]["tmp_name"][$key]) === 0) {
+            $errors[] = "File is empty";
+        }
+        // checks the content of the file regardless of the extension and validates according to it
+        if (!in_array($mime, $allowedTypes)) {
+            $errors[] = "file isn't an image";
+        }
+        if ($files["image"]["size"][$key] > $maxSize) {
             $errors[] = "File size must be less than or equal to 2 MB";
+        }
     }
 
     //remove null objects from error array
